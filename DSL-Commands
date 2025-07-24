@@ -1,0 +1,269 @@
+
+Core Dockerfile Instructions (DSL Commands)
+
+| Instruction   | Description                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `FROM`        | Specifies the **base image** to use for the Docker image.                                                            |
+| `RUN`         | Executes commands in a **new layer** and commits the result. Commonly used to install packages.                      |
+| `CMD`         | Sets the **default command** to run when a container starts.                                                         |
+| `LABEL`       | Adds metadata (e.g., maintainer info) to the image.                                                                  |
+| `EXPOSE`      | Indicates the port(s) the container listens on (does not actually publish them).                                     |
+| `ENV`         | Sets **environment variables** in the image.                                                                         |
+| `ADD`         | Copies files/directories into the image and can fetch URLs or extract archives (not recommended for simple copying). |
+| `COPY`        | Copies files/directories from the host into the image. Preferred over `ADD` for basic copying.                       |
+| `ENTRYPOINT`  | Configures a container to run as an **executable**. Often used with `CMD`.                                           |
+| `VOLUME`      | Creates a mount point with a volume. Used to persist data.                                                           |
+| `USER`        | Specifies the **user** to run subsequent commands as.                                                                |
+| `WORKDIR`     | Sets the **working directory** for subsequent instructions.                                                          |
+| `ARG`         | Defines build-time variables (used with `--build-arg`).                                                              |
+| `ONBUILD`     | Adds a trigger instruction to be executed when the image is used as a base image.                                    |
+| `STOPSIGNAL`  | Sets the system call signal to stop the container.                                                                   |
+| `HEALTHCHECK` | Tells Docker how to test that the container is still working.                                                        |
+| `SHELL`       | Overrides the default shell used by `RUN`, `CMD`, and `ENTRYPOINT`.                                                  |
+
+
+* Order matters: Docker builds the image layer by layer, and earlier layers are cached.
+
+* Use COPY instead of ADD unless you need features like automatic extraction or remote URLs.
+
+* Combine RUN statements to reduce the number of layers (e.g., RUN apt update && apt install -y ...).
+
+* CMD and ENTRYPOINT can be combined, where CMD provides default args to ENTRYPOINT.
+
+
+1. FROM
+What: Specifies the base image.
+
+Why: Every Docker image starts from a base (e.g., ubuntu, alpine, node, python).
+
+When: Always the first instruction in your Dockerfile.
+
+Example:
+
+FROM node:20
+ Best Practice: Use a slim or alpine version to reduce image size if possible.
+
+
+
+2. RUN
+What: Executes commands in the shell inside the image during build.
+
+Why: Used to install packages, create directories, modify files, etc.
+
+When: During image build time.
+
+Example:
+
+RUN apt-get update && apt-get install -y nginx
+ Tip: Combine commands with && to reduce layers and improve caching.
+
+
+
+3. CMD
+What: Provides a default command to run when the container starts.
+
+Why: Defines the main process to keep the container alive.
+
+When: Use when your container has one main job (e.g., run a server).
+
+Example:
+
+CMD ["node", "app.js"]
+  Can be overridden at runtime via docker run myimage command.
+
+
+
+4. LABEL
+What: Adds metadata to an image (key-value pairs).
+
+Why: Helps with documentation, automation, and tracking.
+
+When: Use to describe the image (e.g., maintainer, version, etc.).
+
+Example:
+
+LABEL maintainer="yourname@example.com"
+
+
+
+5. EXPOSE
+What: Documents which port(s) the container will listen on.
+
+Why: Helps inform Docker users what ports to publish.
+
+When: Use if your app uses specific ports.
+
+Example:
+
+EXPOSE 80
+ Doesn’t actually publish the port — use -p with docker run.
+
+
+
+6. ENV
+What: Sets environment variables inside the image.
+
+Why: Used for configuration like secrets, paths, or mode.
+
+When: To provide reusable settings or during app startup.
+
+Example:
+
+ENV NODE_ENV=production
+ These persist across layers and can be accessed in subsequent instructions.
+
+
+
+7. ADD
+What: Copies files, extracts archives, and can download URLs.
+
+Why: Use only if you need archive unpacking or downloading.
+
+When: For .tar.gz extraction or remote URLs.
+
+Example:
+
+ADD https://example.com/app.tar.gz /app/
+ Prefer COPY for simple file copying — ADD has hidden behaviors.
+
+
+
+8. COPY
+What: Copies files/directories from the build context to the image.
+
+Why: Preferred method to include source code, configs, etc.
+
+When: Anytime you want to bring files into the image.
+
+Example:
+
+COPY . /app
+ Simple, predictable — unlike ADD.
+
+
+
+9. ENTRYPOINT
+What: Sets the main executable for the container.
+
+Why: Makes the container behave like a binary tool or script.
+
+When: Use for containers that must always run a specific command.
+
+Example:
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+ Combine with CMD to pass default args that can be overridden.
+
+
+
+10. VOLUME
+What: Creates a mount point for persistent data.
+
+Why: Decouples data from the container lifecycle.
+
+When: For storing logs, databases, or user-uploaded files.
+
+Example:
+
+VOLUME /data
+ Data stored in volumes is not deleted when the container is removed.
+
+
+
+11. USER
+What: Sets the user to run subsequent instructions.
+
+Why: Important for security — avoid running as root.
+
+When: After setting up the environment, switch to non-root.
+
+Example:
+
+USER node
+  Reduces attack surface in production containers.
+
+
+
+12. WORKDIR
+What: Sets the working directory for the container.
+
+Why: Avoids repeatedly using full paths.
+
+When: Use before RUN, CMD, COPY, etc.
+
+Example:
+
+WORKDIR /app
+ Automatically creates the directory if it doesn't exist.
+
+
+
+13. ARG
+What: Defines build-time variables (not available at runtime).
+
+Why: Used to pass values like version numbers.
+
+When: When building the image (docker build --build-arg).
+
+Example:
+
+ARG APP_VERSION=1.0
+RUN echo "Building version $APP_VERSION"
+
+
+
+14. ONBUILD
+What: Adds a trigger to run when this image is used as a base.
+
+Why: Useful for base images like in multi-stage builds or SDKs.
+
+When: Rarely used — for reusable base images.
+
+Example:
+
+ONBUILD COPY . /app
+ Avoid unless you’re building base images for others to inherit.
+
+
+
+
+15. STOPSIGNAL
+What: Sets the signal sent to stop the container.
+
+Why: Allows graceful shutdown of apps.
+
+When: If your app needs a specific signal like SIGTERM.
+
+Example:
+
+STOPSIGNAL SIGINT
+
+
+
+
+16. HEALTHCHECK
+What: Defines a command to check container health.
+
+Why: Lets Docker know if the app is working properly.
+
+When: Use for web servers, APIs, or any long-running service.
+
+Example:
+
+HEALTHCHECK CMD curl --fail http://localhost:80 || exit 1
+ Docker will report status as healthy, unhealthy, or starting.
+
+
+
+
+17. SHELL
+What: Changes the default shell used by RUN, CMD, ENTRYPOINT.
+
+Why: Useful in Windows containers or if you want to use /bin/bash.
+
+When: Rare, but helpful in cross-platform Dockerfiles.
+
+Example:
+
+SHELL ["/bin/bash", "-c"]
+
