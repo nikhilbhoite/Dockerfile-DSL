@@ -31,7 +31,7 @@ Core Dockerfile Instructions (DSL Commands)
 * CMD and ENTRYPOINT can be combined, where CMD provides default args to ENTRYPOINT.
 
 
-1. FROM
+### FROM
 What: Specifies the base image.
 
 Why: Every Docker image starts from a base (e.g., ubuntu, alpine, node, python).
@@ -41,11 +41,32 @@ When: Always the first instruction in your Dockerfile.
 Example:
 
 FROM node:20
+if image is on other registry FROM look like 
+
+FROM 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-node-base:latest
+
  Best Practice: Use a slim or alpine version to reduce image size if possible.
+#### The only instruction that can above FROM is ARG #####
 
 
 
-2. RUN
+
+### COPY
+What: Copies files/directories from the build context (from host/server where you are building image) to the image.
+
+Why: Preferred method to include source code, configs, etc.
+
+When: Anytime you want to bring files into the image.
+
+Example:
+
+COPY . /app
+ Simple, predictable — unlike ADD.
+
+
+
+
+### RUN
 What: Executes commands in the shell inside the image during build.
 
 Why: Used to install packages, create directories, modify files, etc.
@@ -59,7 +80,7 @@ RUN apt-get update && apt-get install -y nginx
 
 
 
-3. CMD
+### CMD
 What: Provides a default command to run when the container starts.
 
 Why: Defines the main process to keep the container alive.
@@ -73,7 +94,7 @@ CMD ["node", "app.js"]
 
 
 
-4. LABEL
+### LABEL
 What: Adds metadata to an image (key-value pairs).
 
 Why: Helps with documentation, automation, and tracking.
@@ -86,7 +107,7 @@ LABEL maintainer="yourname@example.com"
 
 
 
-5. EXPOSE
+### EXPOSE
 What: Documents which port(s) the container will listen on.
 
 Why: Helps inform Docker users what ports to publish.
@@ -100,7 +121,7 @@ EXPOSE 80
 
 
 
-6. ENV
+### ENV
 What: Sets environment variables inside the image.
 
 Why: Used for configuration like secrets, paths, or mode.
@@ -114,7 +135,7 @@ ENV NODE_ENV=production
 
 
 
-7. ADD
+### ADD
 What: Copies files, extracts archives, and can download URLs.
 
 Why: Use only if you need archive unpacking or downloading.
@@ -128,21 +149,8 @@ ADD https://example.com/app.tar.gz /app/
 
 
 
-8. COPY
-What: Copies files/directories from the build context to the image.
 
-Why: Preferred method to include source code, configs, etc.
-
-When: Anytime you want to bring files into the image.
-
-Example:
-
-COPY . /app
- Simple, predictable — unlike ADD.
-
-
-
-9. ENTRYPOINT
+### ENTRYPOINT
 What: Sets the main executable for the container.
 
 Why: Makes the container behave like a binary tool or script.
@@ -156,7 +164,7 @@ ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
 
 
-10. VOLUME
+### VOLUME
 What: Creates a mount point for persistent data.
 
 Why: Decouples data from the container lifecycle.
@@ -170,7 +178,7 @@ VOLUME /data
 
 
 
-11. USER
+### USER
 What: Sets the user to run subsequent instructions.
 
 Why: Important for security — avoid running as root.
@@ -184,7 +192,7 @@ USER node
 
 
 
-12. WORKDIR
+### WORKDIR
 What: Sets the working directory for the container.
 
 Why: Avoids repeatedly using full paths.
@@ -198,7 +206,7 @@ WORKDIR /app
 
 
 
-13. ARG
+### ARG
 What: Defines build-time variables (not available at runtime).
 
 Why: Used to pass values like version numbers.
@@ -212,7 +220,7 @@ RUN echo "Building version $APP_VERSION"
 
 
 
-14. ONBUILD
+### ONBUILD
 What: Adds a trigger to run when this image is used as a base.
 
 Why: Useful for base images like in multi-stage builds or SDKs.
@@ -227,7 +235,7 @@ ONBUILD COPY . /app
 
 
 
-15. STOPSIGNAL
+### STOPSIGNAL
 What: Sets the signal sent to stop the container.
 
 Why: Allows graceful shutdown of apps.
@@ -241,7 +249,7 @@ STOPSIGNAL SIGINT
 
 
 
-16. HEALTHCHECK
+### HEALTHCHECK
 What: Defines a command to check container health.
 
 Why: Lets Docker know if the app is working properly.
@@ -256,7 +264,7 @@ HEALTHCHECK CMD curl --fail http://localhost:80 || exit 1
 
 
 
-17. SHELL
+### SHELL
 What: Changes the default shell used by RUN, CMD, ENTRYPOINT.
 
 Why: Useful in Windows containers or if you want to use /bin/bash.
