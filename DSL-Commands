@@ -56,12 +56,32 @@ What: Copies files/directories from the build context (from host/server where yo
 
 Why: Preferred method to include source code, configs, etc.
 
-When: Anytime you want to bring files into the image.
+When: Anytime you want to bring files into the image. and on building image.
 
 Example:
 
 COPY . /app
+
+COPY source destination
+source > file/folder path from build context
+destination > within that image in which directory you want to copy
+ 
  Simple, predictable — unlike ADD.
+
+
+
+### ADD
+What: ADD also can be use to copy or add file or folder to image, ADD can copy local files and also files from remote loactions
+
+Why: Use only if you need archive unpacking or downloading.
+
+When: For .tar.gz extraction or remote URLs.
+
+Example:
+
+ADD https://example.com/app.tar.gz /app/
+ Prefer COPY for simple file copying — ADD has hidden behaviors.
+
 
 
 
@@ -132,21 +152,6 @@ Example:
 
 ENV NODE_ENV=production
  These persist across layers and can be accessed in subsequent instructions.
-
-
-
-### ADD
-What: Copies files, extracts archives, and can download URLs.
-
-Why: Use only if you need archive unpacking or downloading.
-
-When: For .tar.gz extraction or remote URLs.
-
-Example:
-
-ADD https://example.com/app.tar.gz /app/
- Prefer COPY for simple file copying — ADD has hidden behaviors.
-
 
 
 
